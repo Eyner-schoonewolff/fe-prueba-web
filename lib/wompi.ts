@@ -4,8 +4,9 @@ import type { Transaction } from "@/types/transaction";
 import type { Customer } from "@/types/customer";
 import { api } from "./apiClient";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:9000";
-const DEMO_CUSTOMER_ID = "8690975e-02f5-42cc-9df1-b3f66febb094";
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
+const DEMO_CUSTOMER_ID = process.env.USER_DEMO!;
+const API_KEY = process.env.NEXT_PUBLIC_API_KEY!;
 
 // Backend response type (snake_case)
 interface BackendTransaction {
@@ -18,12 +19,19 @@ interface BackendTransaction {
 }
 
 export async function getProducts(): Promise<Product[]> {
-  return api<Product[]>(`${BASE_URL}/products`);
+  return api<Product[]>(`${BASE_URL}/products`, {
+    headers: {
+      'x-api-key': API_KEY
+    }
+  });
 }
 
 export async function createTransaction(productId: string): Promise<Transaction> {
   const response = await api<BackendTransaction>(`${BASE_URL}/transactions`, {
     method: 'POST',
+    headers: {
+      'x-api-key': API_KEY
+    },
     body: JSON.stringify({ 
       productId,
       customerId: DEMO_CUSTOMER_ID,
@@ -53,6 +61,9 @@ export async function confirmTransaction(id: string, cardNumber?: string): Promi
   
   const response = await api<BackendTransaction>(`${BASE_URL}/transactions/${id}`, {
     method: 'PATCH',
+    headers: {
+      'x-api-key': API_KEY
+    },
     body: JSON.stringify({ 
       status, 
       wompiTransactionId: `WOMPI_${id}_${Date.now()}` 
@@ -77,6 +88,9 @@ export async function createCustomer(customerData: {
 }): Promise<Customer> {
   return api<Customer>(`${BASE_URL}/customers`, {
     method: 'POST',
+    headers: {
+      'x-api-key': API_KEY
+    },
     body: JSON.stringify({
       name: customerData.name,
       email: customerData.email,
@@ -87,7 +101,11 @@ export async function createCustomer(customerData: {
 }
 
 export async function getTransactionsByCustomer(customerId: string = DEMO_CUSTOMER_ID): Promise<Transaction[]> {
-  const response = await api<BackendTransaction[]>(`${BASE_URL}/transactions?customerId=${encodeURIComponent(customerId)}`);
+  const response = await api<BackendTransaction[]>(`${BASE_URL}/transactions?customerId=${encodeURIComponent(customerId)}`, {
+    headers: {
+      'x-api-key': API_KEY
+    }
+  });
   return (response || []).map(tx => ({
     id: tx.id,
     productId: tx.product_id,

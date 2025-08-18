@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
-import { getTransactionsByCustomer } from "@/lib/wompi";
+import { getTransactionsByCustomer } from "@/lib/api";
 import type { Transaction } from "@/types/transaction";
 import Link from "next/link";
 import { ArrowLeftIcon, FunnelIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";

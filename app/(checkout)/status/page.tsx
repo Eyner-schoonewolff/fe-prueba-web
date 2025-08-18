@@ -3,7 +3,7 @@ import { usePayment } from "@/hooks/usePayment";
 import Link from "next/link";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { useEffect, useState } from "react";
-import { getProducts } from "@/lib/wompi";
+import { getProducts } from "@/lib/api";
 
 export default function StatusPage() {
   const { tx } = usePayment();
@@ -13,6 +13,9 @@ export default function StatusPage() {
 
   useEffect(() => {
     let aborted = false;
+    if (tx) {
+      console.log(`[UI] StatusPage montado con estado de transacción: ${tx.status}`);
+    }
     async function loadProductData() {
       if (!tx) return;
       try {
@@ -47,21 +50,34 @@ export default function StatusPage() {
   }, [tx]);
 
   if (!tx) return <div className="p-6">No hay transacción activa.</div>;
-  const approved = tx.status === "COMPLETED";
+  const isPending = tx.status === "PENDING";
+  const isApproved = tx.status === "COMPLETED";
+  const isFailed = tx.status === "FAILED";
   const displayAmount = actualPrice ?? tx.amount;
-  
+
+  const circleClass = isApproved
+    ? 'bg-green-100 text-green-700'
+    : isPending
+    ? 'bg-amber-100 text-amber-700'
+    : 'bg-red-100 text-red-700';
+
   return (
     <div className="p-6 max-w-xl">
       <div className={`bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl p-8 card-shadow text-center`}>
-        <div className={`mx-auto mb-4 h-12 w-12 rounded-full flex items-center justify-center ${approved ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-          {approved ? '✓' : '✕'}
+        <div className={`mx-auto mb-4 h-12 w-12 rounded-full flex items-center justify-center ${circleClass}`}>
+          {isApproved ? '✓' : isPending ? (
+            <span className="inline-block h-5 w-5 rounded-full border-2 border-current border-t-transparent animate-spin" aria-hidden="true"></span>
+          ) : '✕'}
         </div>
-        <h1 className="text-2xl font-bold mb-2">{approved ? 'Pago aprobado' : 'Pago rechazado'}</h1>
+        <h1 className="text-2xl font-bold mb-2">{isPending ? 'Pago en proceso' : isApproved ? 'Pago aprobado' : 'Pago rechazado'}</h1>
         <p className="text-sm text-[var(--muted)]">Transacción #{tx.id.slice(0,6)}</p>
         <p className="mt-1 text-sm text-[var(--muted)]">
           Monto: ${(displayAmount/100).toFixed(2)}
           {loadingStock && tx.amount === 0 && <span className="ml-1 animate-pulse">(actualizando...)</span>}
         </p>
+        {isPending && (
+          <div className="mt-2 text-xs text-[var(--muted)]">Confirmando con Wompi, esto puede tardar unos segundos...</div>
+        )}
 
         {/* Saldo real del producto */}
         <div className="mt-4 flex items-center justify-center gap-2 text-sm">

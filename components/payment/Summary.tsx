@@ -2,12 +2,14 @@
 import { usePayment } from "@/hooks/usePayment";
 import { LockClosedIcon } from "@heroicons/react/24/solid";
 import { useEffect, useState } from "react";
-import { getProducts } from "@/lib/wompi";
+import { getProducts } from "@/lib/api";
 
-export function Summary({ onConfirm }: { onConfirm: () => void }) {
+export function Summary({ onConfirm }: { onConfirm: () => Promise<void> }) {
   const { tx } = usePayment();
   const [baseAmount, setBaseAmount] = useState<number>(0);
   const [loadingBase, setLoadingBase] = useState<boolean>(true);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string>("");
 
   useEffect(() => {
     let aborted = false;
@@ -38,6 +40,19 @@ export function Summary({ onConfirm }: { onConfirm: () => void }) {
   const fee = Math.round(baseAmount * 0.02);
   const total = baseAmount + shipping + fee;
 
+  const handleConfirm = async () => {
+    setErrorMsg("");
+    setSubmitting(true);
+    try {
+      await onConfirm();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Error desconocido";
+      setErrorMsg(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl p-6 card-shadow space-y-3">
       <div className="flex justify-between text-sm text-[var(--muted)]"><span>Producto</span><span>{loadingBase ? '—' : `$${(baseAmount/100).toFixed(2)}`}</span></div>
@@ -45,10 +60,29 @@ export function Summary({ onConfirm }: { onConfirm: () => void }) {
       <div className="flex justify-between text-sm text-[var(--muted)]"><span>Envío (0.5%)</span><span>{loadingBase ? '—' : `$${(shipping/100).toFixed(2)}`}</span></div>
       <hr className="border-[var(--border-color)]" />
       <div className="flex justify-between font-semibold text-lg"><span>Total</span><span>{loadingBase ? '—' : `$${(total/100).toFixed(2)}`}</span></div>
-      <button className="w-full mt-2 py-3 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-[var(--foreground)] rounded-full font-medium shadow-md transition-colors flex items-center justify-center gap-2 disabled:opacity-60" onClick={onConfirm} disabled={loadingBase}>
-        <LockClosedIcon className="h-5 w-5" />
-        Confirmar pago
+      <button
+        className="w-full mt-2 py-3 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-[var(--foreground)] rounded-full font-medium shadow-md transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+        onClick={handleConfirm}
+        disabled={loadingBase || submitting}
+        aria-busy={submitting}
+      >
+        {submitting ? (
+          <>
+            <span className="inline-block h-5 w-5 rounded-full border-2 border-white/30 border-t-white animate-spin" aria-hidden="true"></span>
+            Procesando...
+          </>
+        ) : (
+          <>
+            <LockClosedIcon className="h-5 w-5" />
+            Confirmar pago
+          </>
+        )}
       </button>
+      {errorMsg && (
+        <div className="mt-3 text-sm rounded-md border border-red-200 bg-red-50 text-red-700 px-3 py-2">
+          {errorMsg}
+        </div>
+      )}
     </div>
   );
 }

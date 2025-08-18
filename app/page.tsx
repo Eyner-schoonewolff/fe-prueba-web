@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getProducts, createTransaction } from "@/lib/wompi";
+import { getProducts, createTransaction } from "@/lib/api";
 import type { Product } from "@/types/product";
 import { ProductCard } from "@/components/product/ProductCard";
 import { useRouter } from "next/navigation";

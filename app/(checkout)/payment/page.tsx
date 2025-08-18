@@ -9,8 +9,28 @@ export default function PaymentPage(){
 
   const handleValid = (card: CardData) => {
     console.log("card ok", { ...card, number: card.number.slice(-4).padStart(card.number.length, "*") });
-    // Guardar últimos 6 dígitos para simulación en confirmación
+    
+    // Guardar datos completos de la tarjeta para Wompi (de forma segura)
     if (typeof window !== 'undefined') {
+      // Guardar datos para la integración con Wompi
+      const expParts = card.exp.split('/');
+      const month = expParts[0].padStart(2, '0'); // Asegurar 2 dígitos
+      const year = expParts[1];
+      
+      // Wompi requiere formato YY (2 dígitos), no YYYY
+      const twoDigitYear = year.length === 4 ? year.slice(-2) : year.padStart(2, '0');
+      
+      const cardDataForWompi = {
+        number: card.number.replace(/\s/g, ''), // Remover espacios
+        cvc: card.cvc,
+        exp_month: month,
+        exp_year: twoDigitYear, // YY format
+        card_holder: card.name
+      };
+      
+      localStorage.setItem('cardData', JSON.stringify(cardDataForWompi));
+      
+      // Mantener compatibilidad con código existente
       localStorage.setItem('cardLast4', card.number.slice(-4));
       localStorage.setItem('cardNumberPrefix4', card.number.slice(0,4));
     }

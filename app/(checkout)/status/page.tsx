@@ -34,6 +34,14 @@ export default function StatusPage() {
         if (!aborted) setLoadingStock(false);
       }
     }
+    
+    // Limpiar datos sensibles de la tarjeta del localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('cardData');
+      localStorage.removeItem('cardLast4');
+      localStorage.removeItem('cardNumberPrefix4');
+    }
+    
     loadProductData();
     return () => { aborted = true; };
   }, [tx]);

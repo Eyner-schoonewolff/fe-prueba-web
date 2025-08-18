@@ -11,13 +11,34 @@ export default function SummaryPage(){
   if (!tx) return <div className="p-6">No hay transacción activa.</div>;
 
   const onConfirm = async () => {
-    let prefix: string | undefined = undefined;
-    if (typeof window !== 'undefined') {
-      prefix = localStorage.getItem('cardNumberPrefix4') || undefined;
+    try {
+      let cardData: {
+        number: string;
+        cvc: string;
+        exp_month: string;
+        exp_year: string;
+        card_holder: string;
+      } | undefined = undefined;
+      if (typeof window !== 'undefined') {
+        // Obtener datos completos de la tarjeta del localStorage
+        const storedCardData = localStorage.getItem('cardData');
+        if (storedCardData) {
+          cardData = JSON.parse(storedCardData);
+        }
+      }
+
+      if (!cardData) {
+        throw new Error('No se encontraron datos de la tarjeta. Por favor, regresa al paso anterior.');
+      }
+
+      const updated = await confirmTransaction(tx.id, cardData);
+      setTx({ ...tx, status: updated.status });
+      router.push("/status");
+    } catch (error) {
+      console.error('Error confirmando transacción:', error);
+      // Mostrar error al usuario o manejar de otra forma
+      alert(`Error procesando el pago: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
-    const updated = await confirmTransaction(tx.id, prefix);
-    setTx({ ...tx, status: updated.status });
-    router.push("/status");
   };
 
   return (

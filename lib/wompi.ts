@@ -5,7 +5,7 @@ import type { Customer } from "@/types/customer";
 import { api } from "./apiClient";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
-const DEMO_CUSTOMER_ID = process.env.USER_DEMO!;
+const DEMO_CUSTOMER_ID = process.env.NEXT_PUBLIC_BYPASS_USER_ID!;
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY!;
 
 // Backend response type (snake_case)

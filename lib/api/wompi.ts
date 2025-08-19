@@ -55,25 +55,47 @@ export async function getWompiAcceptanceToken(): Promise<string> {
   return result.data.presigned_acceptance.acceptance_token;
 }
 
-export async function tokenizeCard(cardData: { number: string; cvc: string; exp_month: string; exp_year: string; card_holder: string }): Promise<WompiTokenResponse> {
+export async function tokenizeCard(cardData: {
+  number: string;
+  cvc: string;
+  exp_month: string;
+  exp_year: string;
+  card_holder: string;
+}): Promise<WompiTokenResponse> {
   const cleanCardData = {
     number: cardData.number.replace(/\s/g, ''),
     cvc: cardData.cvc,
     exp_month: cardData.exp_month.padStart(2, '0'),
     exp_year: cardData.exp_year.slice(-2).padStart(2, '0'),
-    card_holder: cardData.card_holder.trim()
+    card_holder: cardData.card_holder.trim(),
   };
+
   const response = await fetch(`${WOMPI_CONFIG.BASE_URL}/tokens/cards`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${WOMPI_CONFIG.PUBLIC_KEY}`, "Content-Type": "application/json" },
+    headers: {
+      Authorization: `Bearer ${WOMPI_CONFIG.PUBLIC_KEY}`,
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(cleanCardData),
   });
+
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(`Error tokenizando tarjeta: ${errorData.error?.reason || errorData.error?.messages?.exp_year?.[0] || "Error desconocido"}`);
+
+    let errorMsg= '';
+     errorMsg =
+      errorData.error?.reason ||
+      Object.values(errorData.error?.messages || {})
+        .flat()
+        .join(", ") || 
+      "Error desconocido";
+
+    throw new Error(`${errorMsg}`);
   }
+
   return response.json();
 }
+
 
 export async function createWompiTransaction(data: {
   amount_in_cents: number; currency: string; customer_email: string;

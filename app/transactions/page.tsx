@@ -17,6 +17,7 @@ export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deliveryMap, setDeliveryMap] = useState<Record<string, string>>({});
   
   // Estados para filtros y paginación
   const [filters, setFilters] = useState<Filters>({
@@ -40,6 +41,15 @@ export default function TransactionsPage() {
         const txs = await getTransactionsByCustomer();
         if (!aborted) {
           setTransactions(txs);
+          // Cargar mapa de entregas desde localStorage
+          if (typeof window !== 'undefined') {
+            try {
+              const stored = JSON.parse(localStorage.getItem('txDeliveries') || '{}');
+              setDeliveryMap(stored);
+            } catch {
+              setDeliveryMap({});
+            }
+          }
         }
       } catch (err) {
         if (!aborted) {
@@ -341,6 +351,24 @@ export default function TransactionsPage() {
                   <div className="text-sm text-[var(--muted)]">
                     {formatDate(tx.createdAt)}
                   </div>
+                  {deliveryMap[tx.id] && (
+                    <div className="mt-2 text-sm">
+                      <span className="text-[var(--muted)]">Entrega: </span>
+                      <Link href={`/deliveries`} className="font-mono underline">
+                        {deliveryMap[tx.id]}
+                      </Link>
+                      <button
+                        className="ml-2 text-xs underline text-[var(--muted)] hover:text-[var(--foreground)]"
+                        onClick={() => {
+                          try {
+                            localStorage.setItem('lastDeliveryId', deliveryMap[tx.id]);
+                          } catch {}
+                        }}
+                      >
+                        consultar
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-semibold">

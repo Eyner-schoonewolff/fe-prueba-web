@@ -3,11 +3,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, createContext, useContext } from "react";
-import { HomeIcon, BanknotesIcon, DocumentTextIcon } from "@heroicons/react/24/solid";
+import { HomeIcon, BanknotesIcon, DocumentTextIcon, TruckIcon } from "@heroicons/react/24/solid";
 
 const menu = [
   { label: "Inicio", href: "/", icon: HomeIcon },
   { label: "Mis Transacciones", href: "/transactions", icon: DocumentTextIcon },
+  { label: "Entregas", href: "/deliveries", icon: TruckIcon },
   { label: "Recibir pagos", href: "/payment", icon: BanknotesIcon },
 ];
 

@@ -16,6 +16,15 @@ interface BackendTransaction {
   created_at: string;
 }
 
+// Delivery response type (snake_case)
+interface BackendDelivery {
+  id: string;
+  customer_id: string;
+  product_id: string;
+  status: "CREATED" | "IN_PROGRESS" | "DELIVERED";
+  created_at?: string;
+}
+
 export async function getProducts(): Promise<Product[]> {
   return api<Product[]>(`${API_CONFIG.BASE_URL}/products`, {
     headers: { [HEADERS.API_KEY_HEADER]: API_CONFIG.API_KEY },
@@ -86,7 +95,7 @@ export async function confirmTransaction(
     if (isWompiTx(x)) return x;
     if (x && typeof x === "object" && "data" in x) {
       const inner = (x as { data?: unknown }).data;
-      if (isWompiTx(inner)) return inner;
+      if (isWompiTx(inner)) return inner as WompiTransaction;
     }
     throw new Error("Respuesta de Wompi sin estructura de transacción válida (sin id/reference)");
   };
@@ -172,4 +181,19 @@ export async function getTransactionsByCustomer(customerId: string = DEMO_CONFIG
     headers: { [HEADERS.API_KEY_HEADER]: API_CONFIG.API_KEY },
   });
   return (response || []).map((tx) => ({ id: tx.id, productId: tx.product_id, amount: tx.amount ?? 0, status: tx.status, createdAt: tx.created_at } as Transaction));
+}
+
+// --- Deliveries ---
+export async function createDelivery(productId: string, customerId: string = DEMO_CONFIG.CUSTOMER_ID): Promise<BackendDelivery> {
+  return api<BackendDelivery>(`${API_CONFIG.BASE_URL}/deliveries`, {
+    method: "POST",
+    headers: { [HEADERS.API_KEY_HEADER]: API_CONFIG.API_KEY },
+    body: JSON.stringify({ customerId, productId })
+  });
+}
+
+export async function getDelivery(id: string): Promise<BackendDelivery> {
+  return api<BackendDelivery>(`${API_CONFIG.BASE_URL}/deliveries/${id}`, {
+    headers: { [HEADERS.API_KEY_HEADER]: API_CONFIG.API_KEY },
+  });
 }

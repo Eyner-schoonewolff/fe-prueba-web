@@ -65,12 +65,12 @@ export async function confirmTransaction(
 
   if (!cardData) throw new Error("Datos de tarjeta requeridos para procesar el pago");
 
-  console.log("[WOMPI] Tokenizando tarjeta...");
-  const cardToken = await tokenizeCard(cardData);
+  console.log("[WOMPI] Iniciando tokenización y obtención de acceptance_token en paralelo...");
+  const [cardToken, acceptanceToken] = await Promise.all([
+    tokenizeCard(cardData),
+    getWompiAcceptanceToken()
+  ]);
   console.log(`[WOMPI] token creado id=${cardToken.data.id}, brand=${cardToken.data.brand}, last4=${cardToken.data.last_four}`);
-
-  console.log("[WOMPI] Obteniendo acceptance_token del comercio...");
-  const acceptanceToken = await getWompiAcceptanceToken();
   console.log("[WOMPI] acceptance_token obtenido");
 
   console.log("[WOMPI] Creando transacción (POST /transactions)...");
@@ -126,10 +126,10 @@ export async function confirmTransaction(
   let latestWompiStatus = wompiTx.status;
   let latestWompiMsg = wompiTx.status_message;
 
-  const maxAttempts = 5;
+  const maxAttempts = 3; // Reducir intentos de 5 a 3
   for (let attempt = 1; attempt <= maxAttempts && !isFinal(latestWompiStatus); attempt++) {
     console.log(`[WOMPI] Intento ${attempt}/${maxAttempts} -> consultando GET /transactions/${wompiTx.id}`);
-    await sleep(attempt === 1 ? 1200 : 2000); // pequeña espera antes de consultar
+    await sleep(attempt === 1 ? 500 : 1000); // Reducir tiempos: 500ms inicial, 1000ms subsecuentes
     try {
       const check = await getWompiTransaction(wompiTx.id);
       latestWompiStatus = check.status;

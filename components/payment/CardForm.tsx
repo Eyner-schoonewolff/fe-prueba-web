@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState, memo } from "react";
 import Image from "next/image";
 import { validateCardNumber, validateCVC, validateExp, validateEmail } from "@/lib/validators";
+import { COLOMBIA_CITIES } from "@/lib/data/cities";
 
 export type CardData = { 
   number: string; 
@@ -16,7 +17,7 @@ export type CardData = {
   city: string;
 };
 
-export function CardForm({ onValid }: { onValid: (card: CardData) => void }) {
+export const CardForm = memo(function CardForm({ onValid }: { onValid: (card: CardData) => void }) {
   const [form, setForm] = useState<CardData>({ 
     number: "", 
     name: "", 
@@ -30,39 +31,8 @@ export function CardForm({ onValid }: { onValid: (card: CardData) => void }) {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Ciudades de Colombia desde API pública
-  const [cities, setCities] = useState<{id: number, name: string}[]>([]);
-  const [loadingCities, setLoadingCities] = useState<boolean>(false);
-  const [citiesError, setCitiesError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function loadCities() {
-      try {
-        setLoadingCities(true);
-        setCitiesError(null);
-        // Endpoint público de API-Colombia para listar ciudades
-        const res = await fetch("https://api-colombia.com/api/v1/City");
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        // Se espera un arreglo de ciudades con propiedad name e id
-        const filtered = (Array.isArray(data) ? data : [])
-          .filter((c: { name?: string; id?: number }) => c?.name && c?.id)
-          .map((c: { name: string; id: number }) => ({id: c.id, name: c.name}));
-        if (!cancelled) {
-          // Orden alfabético
-          filtered.sort((a, b) => a.name.localeCompare(b.name, "es"));
-          setCities(filtered);
-        }
-      } catch (_err: unknown) {
-        if (!cancelled) setCitiesError('No fue posible cargar las ciudades. Puedes escribirla manualmente.' + _err);
-      } finally {
-        if (!cancelled) setLoadingCities(false);
-      }
-    }
-    loadCities();
-    return () => { cancelled = true; };
-  }, []);
+  // Usar lista estática de ciudades principales de Colombia
+  const cities = COLOMBIA_CITIES;
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -214,30 +184,16 @@ export function CardForm({ onValid }: { onValid: (card: CardData) => void }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-[var(--foreground)] mb-2">Ciudad</label>
-            {citiesError ? (
-              <input
-                className="w-full border border-[var(--border-color)] rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={form.city}
-                onChange={(e) => setForm({ ...form, city: e.target.value })}
-                placeholder="Ej. Bogotá"
-              />
-            ) : (
-              <select
-                className="w-full border border-[var(--border-color)] rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-[var(--card-bg)]"
-                value={form.city}
-                onChange={(e) => setForm({ ...form, city: e.target.value })}
-              >
-                <option value="" disabled>
-                  {loadingCities ? "Cargando ciudades..." : "Selecciona una ciudad"}
-                </option>
-                {cities.map((c) => (
-                  <option key={c.id} value={c.name}>{c.name}</option>
-                ))}
-              </select>
-            )}
-            {citiesError && (
-              <p className="text-[var(--error)] text-sm mt-1">{citiesError}</p>
-            )}
+            <select
+              className="w-full border border-[var(--border-color)] rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-[var(--card-bg)]"
+              value={form.city}
+              onChange={(e) => setForm({ ...form, city: e.target.value })}
+            >
+              <option value="" disabled>Selecciona una ciudad</option>
+              {cities.map((c) => (
+                <option key={c.id} value={c.name}>{c.name}</option>
+              ))}
+            </select>
             {errors.city && <p className="text-[var(--error)] text-sm mt-1">{errors.city}</p>}
           </div>
         </div>
@@ -251,4 +207,4 @@ export function CardForm({ onValid }: { onValid: (card: CardData) => void }) {
       </button>
     </div>
   );
-}
+});

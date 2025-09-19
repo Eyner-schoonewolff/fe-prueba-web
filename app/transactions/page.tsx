@@ -382,29 +382,42 @@ export default function TransactionsPage() {
 
           {/* Componente de Paginación */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center mt-8 gap-2">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-[var(--muted)] bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg hover:bg-[var(--card-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeftIcon className="h-4 w-4" />
-                Anterior
-              </button>
+            <div className="flex flex-col sm:flex-row justify-center items-center mt-8 gap-3 sm:gap-2">
+              {/* Botones Anterior/Siguiente - Siempre visibles */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="inline-flex items-center gap-1 px-2 py-2 sm:px-3 text-xs sm:text-sm font-medium text-[var(--muted)] bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg hover:bg-[var(--card-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeftIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Anterior</span>
+                </button>
 
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="inline-flex items-center gap-1 px-2 py-2 sm:px-3 text-xs sm:text-sm font-medium text-[var(--muted)] bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg hover:bg-[var(--card-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <span className="hidden sm:inline">Siguiente</span>
+                  <ChevronRightIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+                </button>
+              </div>
+
+              {/* Números de página - Más compactos en móvil */}
               <div className="flex gap-1">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                  // Mostrar solo páginas cercanas a la actual
+                  // En móvil, mostrar menos páginas (solo actual ± 1)
                   const showPage = 
                     page === 1 || 
                     page === totalPages || 
-                    (page >= currentPage - 2 && page <= currentPage + 2);
+                    (page >= currentPage - 1 && page <= currentPage + 1);
                   
                   if (!showPage) {
-                    // Mostrar puntos suspensivos
-                    if (page === currentPage - 3 || page === currentPage + 3) {
+                    // Mostrar puntos suspensivos solo cuando sea necesario
+                    if (page === currentPage - 2 || page === currentPage + 2) {
                       return (
-                        <span key={page} className="px-3 py-2 text-sm text-[var(--muted)]">
+                        <span key={page} className="px-2 py-2 text-xs sm:text-sm text-[var(--muted)]">
                           ...
                         </span>
                       );
@@ -416,7 +429,7 @@ export default function TransactionsPage() {
                     <button
                       key={page}
                       onClick={() => handlePageChange(page)}
-                      className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      className={`px-2 py-2 sm:px-3 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
                         page === currentPage
                           ? 'bg-[var(--primary)] text-white'
                           : 'text-[var(--muted)] bg-[var(--card-bg)] border border-[var(--border-color)] hover:bg-[var(--card-hover)]'
@@ -428,14 +441,10 @@ export default function TransactionsPage() {
                 })}
               </div>
 
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-[var(--muted)] bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg hover:bg-[var(--card-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Siguiente
-                <ChevronRightIcon className="h-4 w-4" />
-              </button>
+              {/* Información de página actual - Solo en móvil */}
+              <div className="sm:hidden text-xs text-[var(--muted)]">
+                Página {currentPage} de {totalPages}
+              </div>
             </div>
           )}
         </>

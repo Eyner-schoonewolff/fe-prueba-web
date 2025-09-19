@@ -6,7 +6,6 @@ import { API_CONFIG, DEMO_CONFIG, HEADERS, PAYMENT_CONFIG } from "../constants";
 import { createWompiTransaction, getWompiAcceptanceToken, tokenizeCard, getWompiTransaction } from "./wompi";
 import type { WompiTransaction } from "./wompi";
 
-// Backend response type (snake_case)
 interface BackendTransaction {
   id: string;
   product_id: string;
@@ -61,19 +60,14 @@ export async function confirmTransaction(
   const backendTx = await api<BackendTransaction>(`${API_CONFIG.BASE_URL}/transactions/${id}`, {
     headers: { [HEADERS.API_KEY_HEADER]: API_CONFIG.API_KEY },
   });
-  console.log(`[Flow] Backend GET /transactions/${id} -> amount=${backendTx.amount} status=${backendTx.status}`);
 
   if (!cardData) throw new Error("Datos de tarjeta requeridos para procesar el pago");
 
-  console.log("[WOMPI] Iniciando tokenización y obtención de acceptance_token en paralelo...");
   const [cardToken, acceptanceToken] = await Promise.all([
     tokenizeCard(cardData),
     getWompiAcceptanceToken()
   ]);
-  console.log(`[WOMPI] token creado id=${cardToken.data.id}, brand=${cardToken.data.brand}, last4=${cardToken.data.last_four}`);
-  console.log("[WOMPI] acceptance_token obtenido");
 
-  console.log("[WOMPI] Creando transacción (POST /transactions)...");
   const wompiTxRaw = await createWompiTransaction({
     amount_in_cents: backendTx.amount,
     currency: PAYMENT_CONFIG.DEFAULT_CURRENCY,
@@ -102,14 +96,12 @@ export async function confirmTransaction(
   const wompiTx = unwrap(wompiTxRaw);
   console.log(`[WOMPI] POST /transactions -> 201 id=${wompiTx.id} status=${wompiTx.status} reference=${wompiTx.reference}`);
 
-  // Mapear estado inicial y actualizar backend primero (requisito)
   const mapWompiToBackend = (s: "PENDING" | "APPROVED" | "DECLINED" | "VOIDED"): "PENDING" | "COMPLETED" | "FAILED" =>
     s === "APPROVED" ? "COMPLETED" : s === "PENDING" ? "PENDING" : "FAILED";
 
   let status: "PENDING" | "COMPLETED" | "FAILED" = mapWompiToBackend(wompiTx.status);
 
-  console.log(`[Backend] Actualizando estado inicial -> ${status}`);
-  const firstPatch = await api<BackendTransaction>(`${API_CONFIG.BASE_URL}/transactions/${id}`, {
+  await api<BackendTransaction>(`${API_CONFIG.BASE_URL}/transactions/${id}`, {
     method: "PATCH",
     headers: { [HEADERS.API_KEY_HEADER]: API_CONFIG.API_KEY },
     body: JSON.stringify({
@@ -117,7 +109,6 @@ export async function confirmTransaction(
       wompiTransactionId: wompiTx.id
     }),
   });
-  console.log(`[Backend] PATCH (inicial) OK -> status=${firstPatch.status}`);
 
   // Luego volver a consultar la misma API para obtener el estado real (polling breve)
   const isFinal = (s: "PENDING" | "APPROVED" | "DECLINED" | "VOIDED") => s === "APPROVED" || s === "DECLINED" || s === "VOIDED";
@@ -153,7 +144,6 @@ export async function confirmTransaction(
         wompiTransactionId: wompiTx.id
       }),
     });
-    console.log(`[Backend] PATCH (final) OK -> status=${finalPatch.status}`);
     status = finalPatch.status;
   } else {
     console.log(`[Backend] Estado final coincide con el inicial (${status}). No se requiere PATCH adicional.`);
@@ -183,7 +173,6 @@ export async function getTransactionsByCustomer(customerId: string = DEMO_CONFIG
   return (response || []).map((tx) => ({ id: tx.id, productId: tx.product_id, amount: tx.amount ?? 0, status: tx.status, createdAt: tx.created_at } as Transaction));
 }
 
-// --- Deliveries ---
 export async function createDelivery(productId: string, customerId: string = DEMO_CONFIG.CUSTOMER_ID): Promise<BackendDelivery> {
   return api<BackendDelivery>(`${API_CONFIG.BASE_URL}/deliveries`, {
     method: "POST",

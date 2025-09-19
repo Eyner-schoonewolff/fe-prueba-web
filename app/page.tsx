@@ -38,7 +38,6 @@ export default function Home() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Catálogo</h1>
-        <div className="text-sm text-[var(--muted)]">Demo UI Wompi</div>
       </div>
 
       {loading && (

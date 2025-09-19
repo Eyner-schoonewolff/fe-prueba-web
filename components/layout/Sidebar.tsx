@@ -77,7 +77,7 @@ export function Sidebar() {
         className={`fixed left-0 top-0 z-50 h-screen w-64 border-r border-[var(--border-color)] bg-[var(--sidebar-bg)] p-4 transform transition-transform duration-200 ease-out overflow-y-auto ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
       >
         <div className="mb-8 mt-3 px-4 flex items-center justify-center">
-          <Image src="https://public-assets.wompi.com/brand_wompi/logos/logo-primary.svg" alt="Wompi" width={180} height={28} />
+          <Image src="https://logos-wolff.s3.us-west-2.amazonaws.com/ico.png" alt="ico" width={120} height={28} />
         </div>
         <nav className="space-y-1">
           {menu.map((m) => {

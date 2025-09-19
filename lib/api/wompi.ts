@@ -123,7 +123,6 @@ export async function createWompiTransaction(data: {
     throw new Error(`Error creando transacción: ${errorMessage}`);
   }
   const result: WompiTransactionEnvelope = await response.json();
-  console.log( 'Resultado data -> ',result )
   return result.data; // devolver solo el objeto de transacción
 }
 

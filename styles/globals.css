@@ -6,9 +6,9 @@
   --sidebar-bg: #ffffff;
   --card-bg: #ffffff;
   --border-color: #e2e8f0;
-  --primary: #b0f2ae; /* nuevo color botón */
-  --primary-hover: #65B564; /* hover botón */
-  --success: #b0f2ae; /* alinear con primario para CTA verde */
+  --primary: #e79191; /* nuevo color botón */
+  --primary-hover: #b56464; /* hover botón */
+  --success: #e25252; /* alinear con primario para CTA verde */
   --error: #ef4444;
   --warning: #f59e0b;
   --muted: #64748b;

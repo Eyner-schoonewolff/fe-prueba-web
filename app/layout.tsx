@@ -55,8 +55,8 @@ export default function RootLayout({
                   <div className="relative">
                     <div className="absolute inset-0 bg-[var(--primary)]/10 rounded-full blur-sm"></div>
                     <Image 
-                      src="/logos/wompi_logo.png" 
-                      alt="Wompi" 
+                      src="/logos/image.png" 
+                      alt="Wolf" 
                       width={56}
                       height={56}
                       className="h-14 w-auto relative z-10 drop-shadow-sm"

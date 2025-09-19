@@ -16,12 +16,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Wompi - Pago Fácil y Seguro",
-  description: "Plataforma de pagos Wompi - Realiza transacciones de manera fácil y segura",
+  title: "Wolf - Pago Fácil y Seguro",
+  description: "Plataforma de pagos Wolf - Realiza transacciones de manera fácil y segura",
   icons: {
-    icon: "/icon.svg",
-    shortcut: "/icon.svg",
-    apple: "/icon.svg",
+    icon: "/wolf.ico",
+    shortcut: "/wolf.ico",
+    apple: "/wolf.ico",
   },
   other: {
     google: "notranslate",
